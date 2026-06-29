@@ -1,12 +1,31 @@
 const http = require('http');
 
-// Use the PORT environment variable, or default to 3000
 const PORT = process.env.PORT || 3000;
 
 const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Todo Application Backend v2\n');
+  // Check if the request is for the root URL
+  if (req.url === '/') {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html');
+    
+    // Send a simple HTML page
+    res.end(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Todo App</title>
+        </head>
+        <body>
+          <h1>Welcome to the Todo Application</h1>
+          <p>The backend is successfully returning HTML.</p>
+        </body>
+      </html>
+    `);
+  } else {
+    // Basic 404 for any other routes
+    res.statusCode = 404;
+    res.end('Not Found\n');
+  }
 });
 
 server.listen(PORT, () => {
