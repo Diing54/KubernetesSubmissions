@@ -15,18 +15,23 @@ spec:
       volumes:
         - name: shared-logs
           emptyDir: {}
+        - name: shared-pings
+          persistentVolumeClaim:
+            claimName: shared-claim
       containers:
       - name: log-writer
-        image: diing54/log-output:v3
+        image: diing54/log-output:v4
         command: ["node", "writer.js"]
         volumeMounts:
         - name: shared-logs
           mountPath: /usr/src/app/files
       - name: log-reader
-        image: diing54/log-output:v3
+        image: diing54/log-output:v4
         command: ["node", "reader.js"]
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: shared-logs
           mountPath: /usr/src/app/files
+        - name: shared-pings
+          mountPath: /usr/src/app/shared
