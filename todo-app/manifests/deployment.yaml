@@ -12,9 +12,15 @@ spec:
       labels:
         app: todo-app
     spec:
+      volumes:
+        - name: todo-image-volume
+          persistentVolumeClaim:
+            claimName: todo-claim
       containers:
       - name: todo-app
-        image: diing54/todo-app:v3
-        env:
-        - name: PORT
-          value: "3000"
+        image: diing54/todo-app:v2
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: todo-image-volume
+          mountPath: /usr/src/app/images
