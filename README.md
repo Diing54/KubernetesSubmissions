@@ -16,6 +16,7 @@
 * [1.11.](https://github.com/diing54/KubernetesSubmissions/tree/1.11)
 * [1.12.](https://github.com/diing54/KubernetesSubmissions/tree/1.12/todo-app)
 * [1.13.](https://github.com/diing54/KubernetesSubmissions/tree/1.13/todo-app)
+* [2.1.](https://github.com/diing54/KubernetesSubmissions/tree/2.1)
 
 
 
