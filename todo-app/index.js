@@ -8,8 +8,7 @@ const isImageCachedAndValid = () => {
   if (!fs.existsSync(imagePath)) return false;
   const stats = fs.statSync(imagePath);
   const now = new Date();
-  const diffMins = Math.round((now - stats.mtime) / 60000);
-  return diffMins < 10;
+  return Math.round((now - stats.mtime) / 60000) < 10;
 };
 
 const downloadImage = async () => {
@@ -18,7 +17,6 @@ const downloadImage = async () => {
     const response = await fetch('https://picsum.photos/1200', { redirect: 'follow' });
     const buffer = await response.arrayBuffer();
     fs.writeFileSync(imagePath, Buffer.from(buffer));
-    console.log('New image saved successfully.');
   } catch (error) {
     console.error('Error downloading image:', error);
   }
@@ -26,9 +24,7 @@ const downloadImage = async () => {
 
 const server = http.createServer(async (req, res) => {
   if (req.url === '/') {
-    if (!isImageCachedAndValid()) {
-      await downloadImage();
-    }
+    if (!isImageCachedAndValid()) await downloadImage();
 
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(`
@@ -50,34 +46,62 @@ const server = http.createServer(async (req, res) => {
           <img src="/image.jpg" alt="Daily Random" />
           
           <div class="todo-form">
-            <input type="text" maxlength="140" placeholder="Enter a new todo (max 140 chars)..." />
-            <button type="button">Create TODO</button>
+            <form id="todoForm">
+              <input type="text" id="todoInput" maxlength="140" placeholder="Enter a new todo..." required />
+              <button type="submit">Create TODO</button>
+            </form>
           </div>
 
-          <ul>
-            <li>Master Kubernetes volumes</li>
-            <li>Learn how to route traffic with Ingress</li>
-            <li>Deploy a persistent database</li>
+          <ul id="todoList">
+            <!-- Populated dynamically by JavaScript -->
           </ul>
+
+          <script>
+            // 1. Fetch the list from the backend and render it
+            const fetchTodos = async () => {
+              const res = await fetch('/todos');
+              const todos = await res.json();
+              const list = document.getElementById('todoList');
+              list.innerHTML = '';
+              todos.forEach(t => {
+                const li = document.createElement('li');
+                li.textContent = t;
+                list.appendChild(li);
+              });
+            };
+
+            // 2. Intercept the form submission to POST data without reloading the page
+            document.getElementById('todoForm').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const input = document.getElementById('todoInput');
+              const todo = input.value;
+              
+              await fetch('/todos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ todo })
+              });
+              
+              input.value = ''; // Clear the box
+              fetchTodos();     // Refresh the list immediately
+            });
+
+            // Load the list when the page opens
+            fetchTodos();
+          </script>
         </body>
       </html>
     `);
-  
   } else if (req.url === '/image.jpg') {
     if (fs.existsSync(imagePath)) {
       res.writeHead(200, { 'Content-Type': 'image/jpeg' });
       fs.createReadStream(imagePath).pipe(res);
     } else {
-      res.writeHead(404);
-      res.end();
+      res.writeHead(404); res.end();
     }
   } else {
-    res.writeHead(404);
-    res.end();
+    res.writeHead(404); res.end();
   }
 });
 
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`Todo app started on port ${PORT}`);
-});
+server.listen(3000, () => console.log('Todo frontend started on port 3000'));

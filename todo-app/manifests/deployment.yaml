@@ -18,7 +18,7 @@ spec:
             claimName: todo-claim
       containers:
       - name: todo-app
-        image: diing54/todo-app:v5
+        image: diing54/todo-app:v6
         ports:
         - containerPort: 3000
         volumeMounts:
