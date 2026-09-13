@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: log-output-configmap
+  namespace: exercises
+data:
+  # This is injected as an environment variable
+  MESSAGE: "hello world"
+  # This is mounted as a physical file
+  information.txt: "this text is from file"

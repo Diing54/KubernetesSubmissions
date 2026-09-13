@@ -16,18 +16,32 @@ spec:
       volumes:
         - name: shared-logs
           emptyDir: {}
+        # 1. Define the ConfigMap as a volume
+        - name: config-volume
+          configMap:
+            name: log-output-configmap
       containers:
       - name: log-writer
-        image: diing54/log-output:v5
+        image: diing54/log-output:v6
         command: ["node", "writer.js"]
         volumeMounts:
         - name: shared-logs
           mountPath: /usr/src/app/files
       - name: log-reader
-        image: diing54/log-output:v5
+        image: diing54/log-output:v6
         command: ["node", "reader.js"]
+        # 2. Inject the environment variable
+        env:
+          - name: MESSAGE
+            valueFrom:
+              configMapKeyRef:
+                name: log-output-configmap
+                key: MESSAGE
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: shared-logs
           mountPath: /usr/src/app/files
+        # 3. Mount the ConfigMap file into the container
+        - name: config-volume
+          mountPath: /usr/src/app/config
