@@ -15,6 +15,12 @@ spec:
     spec:
       containers:
       - name: todo-backend
-        image: diing54/todo-backend:v1
+        image: diing54/todo-backend:v2
+        env:
+          - name: PORT
+            valueFrom:
+              configMapKeyRef:
+                name: project-config
+                key: PORT
         ports:
         - containerPort: 3000

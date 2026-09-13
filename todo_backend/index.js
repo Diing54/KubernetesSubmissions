@@ -1,5 +1,8 @@
 const http = require('http');
 
+// Pull port from the environment, fallback to 3000
+const PORT = process.env.PORT || 3000;
+
 let todos = [
   "Master Kubernetes volumes",
   "Learn how to route traffic with Ingress",
@@ -35,4 +38,4 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(3000, () => console.log('Backend listening on port 3000'));
+server.listen(PORT, () => console.log(`Backend listening on port ${PORT}`));

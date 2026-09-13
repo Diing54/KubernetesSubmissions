@@ -19,7 +19,18 @@ spec:
             claimName: todo-claim
       containers:
       - name: todo-app
-        image: diing54/todo-app:v6
+        image: diing54/todo-app:v7
+        env:
+          - name: PORT
+            valueFrom:
+              configMapKeyRef:
+                name: project-config
+                key: PORT
+          - name: IMAGE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: project-config
+                key: IMAGE_URL
         ports:
         - containerPort: 3000
         volumeMounts:

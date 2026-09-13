@@ -2,6 +2,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Dynamically pull configurations
+const PORT = process.env.PORT || 3000;
+const IMAGE_URL = process.env.IMAGE_URL || 'https://picsum.photos/1200';
+
 const imagePath = path.join(__dirname, 'images', 'image.jpg');
 
 const isImageCachedAndValid = () => {
@@ -13,8 +17,8 @@ const isImageCachedAndValid = () => {
 
 const downloadImage = async () => {
   try {
-    console.log('Fetching new image from Picsum...');
-    const response = await fetch('https://picsum.photos/1200', { redirect: 'follow' });
+    console.log(`Fetching new image from ${IMAGE_URL}...`);
+    const response = await fetch(IMAGE_URL, { redirect: 'follow' });
     const buffer = await response.arrayBuffer();
     fs.writeFileSync(imagePath, Buffer.from(buffer));
   } catch (error) {
@@ -57,7 +61,6 @@ const server = http.createServer(async (req, res) => {
           </ul>
 
           <script>
-            // 1. Fetch the list from the backend and render it
             const fetchTodos = async () => {
               const res = await fetch('/todos');
               const todos = await res.json();
@@ -70,7 +73,6 @@ const server = http.createServer(async (req, res) => {
               });
             };
 
-            // 2. Intercept the form submission to POST data without reloading the page
             document.getElementById('todoForm').addEventListener('submit', async (e) => {
               e.preventDefault();
               const input = document.getElementById('todoInput');
@@ -82,11 +84,10 @@ const server = http.createServer(async (req, res) => {
                 body: JSON.stringify({ todo })
               });
               
-              input.value = ''; // Clear the box
-              fetchTodos();     // Refresh the list immediately
+              input.value = '';
+              fetchTodos();
             });
 
-            // Load the list when the page opens
             fetchTodos();
           </script>
         </body>
@@ -104,4 +105,4 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(3000, () => console.log('Todo frontend started on port 3000'));
+server.listen(PORT, () => console.log(`Todo frontend started on port ${PORT}`));
