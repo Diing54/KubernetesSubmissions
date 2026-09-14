@@ -15,12 +15,17 @@ spec:
     spec:
       containers:
       - name: todo-backend
-        image: diing54/todo-backend:v2
+        image: diing54/todo-backend:v3
         env:
           - name: PORT
             valueFrom:
               configMapKeyRef:
                 name: project-config
                 key: PORT
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_PASSWORD
         ports:
         - containerPort: 3000
