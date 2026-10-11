@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: todo-backend
-        image: diing54/todo-backend:v3
+        image: diing54/todo-backend:v4
         env:
           - name: PORT
             valueFrom:

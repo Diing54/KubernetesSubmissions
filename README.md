@@ -25,6 +25,7 @@
 * [2.7.](https://github.com/diing54/KubernetesSubmissions/tree/2.7)
 * [2.8.](https://github.com/diing54/KubernetesSubmissions/tree/2.8)
 * [2.9.](https://github.com/diing54/KubernetesSubmissions/tree/2.9)
+* [2.10.](https://github.com/diing54/KubernetesSubmissions/tree/2.10)
 
 
 
