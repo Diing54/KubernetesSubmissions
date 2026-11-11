@@ -4,24 +4,52 @@ const path = require('path');
 
 // Path for the shared emptyDir volume
 const statusPath = path.join(__dirname, 'files', 'status.txt');
-// New path for the ConfigMap file mount
+// Path for the ConfigMap file mount
 const configFilePath = path.join(__dirname, 'config', 'information.txt');
 
+// Helper function to check Ping-pong health over HTTP
+const checkPingPongHealth = () => {
+  return new Promise((resolve, reject) => {
+    const req = http.get('http://ping-pong-svc:2345/count', (res) => {
+      if (res.statusCode === 200) {
+        resolve(true);
+      } else {
+        reject(new Error(`Status Code: ${res.statusCode}`));
+      }
+    });
+    req.on('error', (err) => reject(err));
+    req.setTimeout(2000, () => {
+      req.destroy();
+      reject(new Error('Timeout'));
+    });
+  });
+};
+
 const server = http.createServer(async (req, res) => {
-  if (req.url === '/') {
+  // Readiness probe endpoint
+  if (req.url === '/healthz') {
+    try {
+      await checkPingPongHealth();
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      return res.end('OK\n');
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      return res.end(`Ping-pong not ready: ${err.message}\n`);
+    }
+  } 
+  
+  // Main application route
+  else if (req.url === '/') {
     try {
       const statusContent = fs.readFileSync(statusPath, 'utf-8').trim();
       
-      // 1. Read the ConfigMap file content
       let fileContent = '';
       if (fs.existsSync(configFilePath)) {
         fileContent = fs.readFileSync(configFilePath, 'utf-8').trim();
       }
       
-      // 2. Read the ConfigMap environment variable
       const envMessage = process.env.MESSAGE || '';
 
-      // 3. Fetch ping count over the network
       let pings = '0';
       try {
         const pingResponse = await fetch('http://ping-pong-svc:2345/count');
@@ -31,7 +59,6 @@ const server = http.createServer(async (req, res) => {
       }
 
       res.writeHead(200, { 'Content-Type': 'text/plain' });
-      // Format the exact multi-line string required by the exercise
       res.end(`file content: ${fileContent}\nenv variable: MESSAGE=${envMessage}\n${statusContent}.Ping / Pongs: ${pings}\n`);
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'text/plain' });

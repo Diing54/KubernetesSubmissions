@@ -9,21 +9,52 @@ const client = new Client({
   port: 5432,
 });
 
-client.connect()
-  .then(() => {
-    console.log('Connected to PostgreSQL');
-    return client.query(`
-      CREATE TABLE IF NOT EXISTS pings (
-        id SERIAL PRIMARY KEY,
-        count INT NOT NULL
-      );
-      INSERT INTO pings (id, count) VALUES (1, 0) ON CONFLICT (id) DO NOTHING;
-    `);
-  })
-  .catch(err => console.error('Connection error', err.stack));
+// 1. State variable to track database connection status
+let isDbConnected = false;
+
+// 2. Wrap connection logic in a retry function
+const connectWithRetry = () => {
+  client.connect()
+    .then(() => {
+      console.log('Connected to PostgreSQL');
+      isDbConnected = true; // Mark as healthy
+      return client.query(`
+        CREATE TABLE IF NOT EXISTS pings (
+          id SERIAL PRIMARY KEY,
+          count INT NOT NULL
+        );
+        INSERT INTO pings (id, count) VALUES (1, 0) ON CONFLICT (id) DO NOTHING;
+      `);
+    })
+    .catch(err => {
+      console.error('Database connection failed, retrying in 5s...', err.message);
+      isDbConnected = false; // Mark as unhealthy
+      // 3. Retry after 5 seconds if connection fails
+      setTimeout(connectWithRetry, 5000);
+    });
+};
+
+// 4. Initiate the connection loop
+connectWithRetry();
 
 const server = http.createServer(async (req, res) => {
-  if (req.url === '/pingpong') {
+  // 5. Readiness probe endpoint
+  if (req.url === '/healthz') {
+    // 6. Instantly fail the probe if the DB is not connected
+    if (!isDbConnected) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      return res.end('Database not ready\n');
+    }
+    try {
+      // 7. Double-check the connection with a lightweight query
+      await client.query('SELECT 1;');
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      return res.end('OK\n'); // 8. Success: Kubernetes will route traffic here
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      return res.end('Database query failed\n');
+    }
+  } else if (req.url === '/pingpong') {
     try {
       const result = await client.query('UPDATE pings SET count = count + 1 WHERE id = 1 RETURNING count;');
       const count = result.rows[0].count;

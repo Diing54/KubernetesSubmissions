@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ping-pong
-        image: diing54/ping-pong:v4
+        image: diing54/ping-pong:v4.1
         env:
           - name: DB_PASSWORD
             valueFrom:
@@ -24,3 +24,9 @@ spec:
                 key: POSTGRES_PASSWORD
         ports:
         - containerPort: 3000
+        readinessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          httpGet:
+            path: /healthz
+            port: 3000
