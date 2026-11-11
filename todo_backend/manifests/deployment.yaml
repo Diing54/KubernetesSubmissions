@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: todo-backend
-        image: diing54/todo-backend:v4
+        image: diing54/todo-backend:v5
         env:
           - name: PORT
             valueFrom:
@@ -29,3 +29,15 @@ spec:
                 key: POSTGRES_PASSWORD
         ports:
         - containerPort: 3000
+        readinessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          httpGet:
+            path: /healthz
+            port: 3000
+        livenessProbe:
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          httpGet:
+            path: /healthz
+            port: 3000
